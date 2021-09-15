@@ -1,4 +1,4 @@
-# decapod-site
+# decapod-tks-site
 This repository contains custom configurations for [decapod-base-yaml](https://github.com/openinfradev/decapod-base-yaml) and [decapod-flow](https://github.com/openinfradev/decapod-flow).  
 
 ## Documents
