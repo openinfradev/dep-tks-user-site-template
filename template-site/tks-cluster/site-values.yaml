@@ -8,7 +8,7 @@ global:
 charts:
 - name: cluster-api-aws
   override:
-    sshKeyName: default
+    sshKeyName: tks-seoul
     cluster.name: $(clusterName)
     cluster.region: ap-northeast-2
     cluster.bastion.enabled: false
