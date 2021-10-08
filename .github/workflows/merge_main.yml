@@ -39,7 +39,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          source-directory: 'cd'
+          source-directory: 'output'
           destination-github-username: ${{ github.repository_owner }}
           destination-repository-name: ${{ steps.repository_name.outputs.substring }}
           user-email: 'taco_support@sk.com'
