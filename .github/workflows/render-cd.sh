@@ -4,9 +4,9 @@ BRANCH="main"
 
 rm -rf decapod-base-yaml
 
-site_list=$(ls -d */ | sed 's/\///g' | egrep -v "docs|^template|^deprecated|cd" )
+site_list=$(ls -d */ | sed 's/\///g' | egrep -v "docs|^template|^deprecated|output" )
 
-outputdir="cd"
+outputdir="output"
 if [ $# -eq 1 ]; then
   BRANCH=$1
 elif [ $# -eq 2 ]; then
