@@ -1,8 +1,11 @@
 #!/bin/bash
-DECAPOD_BASE_URL=https://github.com/tks-management/decapod-base-yaml.git
+DECAPOD_BASE_DIR=decapod-base-yaml
+DECAPOD_BASE_URL=https://github.com/openinfradev/${DECAPOD_BASE_DIR}.git
+TKS_CUSTOM_BASE_DIR=tks-custom-base-yaml
+TKS_CUSTOM_BASE_URL=https://github.com/tks-management/${TKS_CUSTOM_BASE_DIR}.git
 BRANCH="main"
 
-rm -rf decapod-base-yaml
+rm -rf $DECAPOD_BASE_DIR $TKS_CUSTOM_BASE_DIR
 
 site_list=$(ls -d */ | sed 's/\///g' | egrep -v "docs|^template|^deprecated|output" )
 
@@ -18,48 +21,87 @@ elif [ $# -eq 3 ]; then
   site_list=$3
 fi
 
-echo "[render-cd] dacapod branch=$BRANCH, output target=$outputdir ,target site(s)=${site_list}\n\n"
+echo "[render-cd] dacapod branch=$BRANCH, output directory=$outputdir ,target site(s)=${site_list}\n\n"
 
-echo "Fetch base with $BRANCH branch/tag........"
+echo "Fetching decapod-base with $BRANCH branch/tag........"
 git clone -b $BRANCH $DECAPOD_BASE_URL
 if [ $? -ne 0 ]; then
+  echo "Error while cloning from $DECAPOD_BASE_URL"
+  exit $?
+fi
+
+echo "Fetching tks-custom-base with $BRANCH branch/tag........"
+git clone -b $BRANCH $TKS_CUSTOM_BASE_URL
+if [ $? -ne 0 ]; then
+  echo "Error while cloning from $TKS_CUSTOM_BASE_URL"
   exit $?
 fi
 
 mkdir $outputdir
 
-for i in ${site_list}
+for site in ${site_list}
 do
-  echo "[render-cd] Starting build manifests for '$i' site"
+  echo "[render-cd] Starting build manifests for '$site' site"
 
-  for app in `ls $i/`
+  for app in `ls $site/`
   do
-    output="decapod-base-yaml/$app/$i/$app-manifest.yaml"
-    mkdir decapod-base-yaml/$app/$i
-    cp -r $i/$app/*.yaml decapod-base-yaml/$app/$i/
+    output_file="decapod-base-yaml/$app/$site/$app-manifest.yaml"
 
-    echo "Rendering $app-manifest.yaml for $i site"
-    docker run --rm -i -v $(pwd)/decapod-base-yaml/$app:/$app --name kustomize-build sktdev/decapod-kustomize:latest kustomize build --enable_alpha_plugins /$app/$i -o /$app/$i/$app-manifest.yaml
+    # delay this step to later?
+    mkdir decapod-base-yaml/$app/$site
+
+    if [ -d ./$DECAPOD_BASE_DIR/$app ]; then
+      # Case where app dir exists in both repos: not supported yet.
+      if [ -d ./$TKS_CUSTOM_BASE_DIR/$app ]; then
+        echo "$app directory exists in both decapod-base and custom-base. This case is not supported yet."
+        exit SOME_ERROR_CODE
+      # Common case (app dir only exists in decapod-base)
+      else
+        echo "No cutom-base for $app app. Just doing normal merge.."
+      fi
+    # If app dir only exists in custom-base, then copy the dir into decapod-base.
+    # (E.g., tks-cluster)
+    elif [ -d ./$TKS_CUSTOM_BASE_DIR/$app ]; then
+      # check if
+      # 1. the app dir has resource.yaml and kustomization.yaml points to current dir
+      # 2. site directory's kustomization.yaml points to ../base dir
+      # otherwise it's an error!
+      if [ -f ./$TKS_CUSTOM_BASE_DIR/$app/resource.yaml ] && grep resources.yaml ./$TKS_CUSTOM_BASE_DIR/$app/kustomization.yaml; then
+        echo "No decapod-base for $app app. Using custom-base as base configuration.."
+        cp -r tks-custom-base-yaml/$app decapod-base-yaml/
+      else
+        echo "Error: no resources.yaml file or wrong kustomization.yaml!"
+        exit SOME_ERROR_CODE
+      fi
+    else
+      echo "There's no base configuration for $app app at all. Exiting..."
+      exit SOME_ERROR_CODE
+    fi
+
+    # Copy site-values into decapod-base
+    cp -r $site/$app/*.yaml decapod-base-yaml/$app/$site/
+
+    echo "Rendering $app-manifest.yaml for $site site"
+    docker run --rm -i -v $(pwd)/decapod-base-yaml/$app:/$app --name kustomize-build sktdev/decapod-kustomize:latest kustomize build --enable_alpha_plugins /$app/$site -o /$app/$site/$app-manifest.yaml
     build_result=$?
 
     if [ $build_result != 0 ]; then
       exit $build_result
     fi
 
-    if [ -f "$output" ]; then
-      echo "[render-cd] [$i, $app] Successfully Generate Helm-Release Files!"
+    if [ -f "$output_file" ]; then
+      echo "[render-cd] [$site, $app] Successfully Generate Helm-Release Files!"
     else
-      echo "[render-cd] [$i, $app] Failed to render $app-manifest.yaml"
-      rm -rf $i/base decapod-yaml
+      echo "[render-cd] [$site, $app] Failed to render $app-manifest.yaml"
+      #rm -rf $site/base decapod-yaml
       exit 1
     fi
 
-    # cat $output
-    docker run --rm -i --net=host -v $(pwd)/decapod-base-yaml:/decapod-base-yaml -v $(pwd)/$outputdir:/cd --name generate ghcr.io/openinfradev/helmrelease2yaml:v1.3.0 -m $output -t -o /cd/$i/$app
-    rm $output
+    docker run --rm -i --net=host -v $(pwd)/decapod-base-yaml:/decapod-base-yaml -v $(pwd)/$outputdir:/out --name generate ghcr.io/openinfradev/helmrelease2yaml:v1.3.0 -m $output -t -o /out/$site/$app
+    rm $output_file
 
-    rm -rf $i/base
+    #rm -rf $site/base
   done
 done
 
-rm -rf decapod-base-yaml
+rm -rf $DECAPOD_BASE_DIR $TKS_CUSTOM_BASE_DIR
