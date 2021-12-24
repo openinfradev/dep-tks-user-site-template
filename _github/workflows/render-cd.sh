@@ -9,6 +9,7 @@ rm -rf $DECAPOD_BASE_DIR $TKS_CUSTOM_BASE_DIR
 
 site_list=$(ls -d */ | sed 's/\///g' | egrep -v "docs|^template|^deprecated|output" )
 
+# output directory which will contain finally rendered k8s manifests
 outputdir="output"
 if [ $# -eq 1 ]; then
   BRANCH=$1
@@ -45,8 +46,8 @@ do
 
   for app in `ls $site/`
   do
-    output_file="decapod-base-yaml/$app/$site/$app-manifest.yaml"
-
+    # helm-release file name rendered on 1st phase
+    hr_file="decapod-base-yaml/$app/$site/$app-manifest.yaml"
 
     if [ -d ./$DECAPOD_BASE_DIR/$app ]; then
       # Case where app dir exists in both repos: not supported yet.
@@ -89,7 +90,7 @@ do
       exit $build_result
     fi
 
-    if [ -f "$output_file" ]; then
+    if [ -f "$hr_file" ]; then
       echo "[render-cd] [$site, $app] Successfully Generate Helm-Release Files!"
     else
       echo "[render-cd] [$site, $app] Failed to render $app-manifest.yaml"
@@ -97,8 +98,8 @@ do
       exit 1
     fi
 
-    docker run --rm -i --net=host -v $(pwd)/decapod-base-yaml:/decapod-base-yaml -v $(pwd)/$outputdir:/out --name generate ghcr.io/openinfradev/helmrelease2yaml:v1.3.0 -m $output -t -o /out/$site/$app
-    rm $output_file
+    docker run --rm -i --net=host -v $(pwd)/decapod-base-yaml:/decapod-base-yaml -v $(pwd)/$outputdir:/out --name generate ghcr.io/openinfradev/helmrelease2yaml:v1.3.0 -m $hr_file -t -o /out/$site/$app
+    rm $hr_file
 
     #rm -rf $site/base
   done
