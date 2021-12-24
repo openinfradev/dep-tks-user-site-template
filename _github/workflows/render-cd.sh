@@ -2,7 +2,7 @@
 DECAPOD_BASE_DIR=decapod-base-yaml
 DECAPOD_BASE_URL=https://github.com/openinfradev/${DECAPOD_BASE_DIR}.git
 TKS_CUSTOM_BASE_DIR=tks-custom-base-yaml
-TKS_CUSTOM_BASE_URL=https://github.com/tks-management/${TKS_CUSTOM_BASE_DIR}.git
+TKS_CUSTOM_BASE_URL=https://github.com/openinfradev/${TKS_CUSTOM_BASE_DIR}.git
 BRANCH="main"
 
 rm -rf $DECAPOD_BASE_DIR $TKS_CUSTOM_BASE_DIR
@@ -47,14 +47,12 @@ do
   do
     output_file="decapod-base-yaml/$app/$site/$app-manifest.yaml"
 
-    # delay this step to later?
-    mkdir decapod-base-yaml/$app/$site
 
     if [ -d ./$DECAPOD_BASE_DIR/$app ]; then
       # Case where app dir exists in both repos: not supported yet.
       if [ -d ./$TKS_CUSTOM_BASE_DIR/$app ]; then
         echo "$app directory exists in both decapod-base and custom-base. This case is not supported yet."
-        exit SOME_ERROR_CODE
+        exit 1
       # Common case (app dir only exists in decapod-base)
       else
         echo "No cutom-base for $app app. Just doing normal merge.."
@@ -66,17 +64,19 @@ do
       # 1. the app dir has resource.yaml and kustomization.yaml points to current dir
       # 2. site directory's kustomization.yaml points to ../base dir
       # otherwise it's an error!
-      if [ -f ./$TKS_CUSTOM_BASE_DIR/$app/resource.yaml ] && grep resources.yaml ./$TKS_CUSTOM_BASE_DIR/$app/kustomization.yaml; then
+      if [ -f ./$TKS_CUSTOM_BASE_DIR/$app/base/resources.yaml ] && grep resources.yaml ./$TKS_CUSTOM_BASE_DIR/$app/base/kustomization.yaml; then
         echo "No decapod-base for $app app. Using custom-base as base configuration.."
         cp -r tks-custom-base-yaml/$app decapod-base-yaml/
       else
         echo "Error: no resources.yaml file or wrong kustomization.yaml!"
-        exit SOME_ERROR_CODE
+        exit 1
       fi
     else
       echo "There's no base configuration for $app app at all. Exiting..."
-      exit SOME_ERROR_CODE
+      exit 1
     fi
+
+    mkdir decapod-base-yaml/$app/$site
 
     # Copy site-values into decapod-base
     cp -r $site/$app/*.yaml decapod-base-yaml/$app/$site/
