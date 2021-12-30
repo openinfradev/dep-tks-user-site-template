@@ -47,7 +47,7 @@ do
   for app in `ls $site/`
   do
     # helm-release file name rendered on 1st phase
-    hr_file="decapod-base-yaml/$app/$site/$app-manifest.yaml"
+    hr_file="$DECAPOD_BASE_DIR/$app/$site/$app-manifest.yaml"
 
     if [ -d ./$DECAPOD_BASE_DIR/$app ]; then
       # Case where app dir exists in both repos: not supported yet.
@@ -67,7 +67,7 @@ do
       # otherwise it's an error!
       if [ -f ./$TKS_CUSTOM_BASE_DIR/$app/base/resources.yaml ] && grep resources.yaml ./$TKS_CUSTOM_BASE_DIR/$app/base/kustomization.yaml; then
         echo "No decapod-base for $app app. Using custom-base as base configuration.."
-        cp -r tks-custom-base-yaml/$app decapod-base-yaml/
+        cp -r $TKS_CUSTOM_BASE_DIR/$app $DECAPOD_BASE_DIR/
       else
         echo "Error: no resources.yaml file or wrong kustomization.yaml!"
         exit 1
@@ -77,13 +77,13 @@ do
       exit 1
     fi
 
-    mkdir decapod-base-yaml/$app/$site
+    mkdir $DECAPOD_BASE_DIR/$app/$site
 
     # Copy site-values into decapod-base
-    cp -r $site/$app/*.yaml decapod-base-yaml/$app/$site/
+    cp -r $site/$app/*.yaml $DECAPOD_BASE_DIR/$app/$site/
 
     echo "Rendering $app-manifest.yaml for $site site"
-    docker run --rm -i -v $(pwd)/decapod-base-yaml/$app:/$app --name kustomize-build sktdev/decapod-kustomize:latest kustomize build --enable_alpha_plugins /$app/$site -o /$app/$site/$app-manifest.yaml
+    docker run --rm -i -v $(pwd)/$DECAPOD_BASE_DIR/$app:/$app --name kustomize-build sktdev/decapod-kustomize:latest kustomize build --enable_alpha_plugins /$app/$site -o /$app/$site/$app-manifest.yaml
     build_result=$?
 
     if [ $build_result != 0 ]; then
@@ -98,7 +98,7 @@ do
       exit 1
     fi
 
-    docker run --rm -i --net=host -v $(pwd)/decapod-base-yaml:/decapod-base-yaml -v $(pwd)/$outputdir:/out --name generate ghcr.io/openinfradev/helmrelease2yaml:v1.3.0 -m $hr_file -t -o /out/$site/$app
+    docker run --rm -i --net=host -v $(pwd)/$DECAPOD_BASE_DIR:/decapod-base-yaml -v $(pwd)/$outputdir:/out --name generate ghcr.io/openinfradev/helmrelease2yaml:v1.3.0 -m $hr_file -t -o /out/$site/$app
     rm $hr_file
 
     #rm -rf $site/base
