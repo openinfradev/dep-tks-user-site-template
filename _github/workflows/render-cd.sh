@@ -4,6 +4,7 @@ DECAPOD_BASE_URL=https://github.com/openinfradev/${DECAPOD_BASE_DIR}.git
 TKS_CUSTOM_BASE_DIR=tks-custom-base-yaml
 TKS_CUSTOM_BASE_URL=https://github.com/openinfradev/${TKS_CUSTOM_BASE_DIR}.git
 BRANCH="main"
+USERNAME="TKS-BOT"
 
 rm -rf $DECAPOD_BASE_DIR $TKS_CUSTOM_BASE_DIR
 
@@ -32,7 +33,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Fetching tks-custom-base with $BRANCH branch/tag........"
-git clone -b $BRANCH $TKS_CUSTOM_BASE_URL
+git clone -b $BRANCH $USER_NAME:$API_TOKEN_GITHUB@$TKS_CUSTOM_BASE_URL
 if [ $? -ne 0 ]; then
   echo "Error while cloning from $TKS_CUSTOM_BASE_URL"
   exit $?
@@ -94,14 +95,12 @@ do
       echo "[render-cd] [$site, $app] Successfully Generate Helm-Release Files!"
     else
       echo "[render-cd] [$site, $app] Failed to render $app-manifest.yaml"
-      #rm -rf $site/base decapod-yaml
       exit 1
     fi
 
     docker run --rm -i --net=host -v $(pwd)/$DECAPOD_BASE_DIR:/decapod-base-yaml -v $(pwd)/$outputdir:/out --name generate ghcr.io/openinfradev/helmrelease2yaml:v1.3.0 -m $hr_file -t -o /out/$site/$app
     rm $hr_file
 
-    #rm -rf $site/base
   done
 done
 

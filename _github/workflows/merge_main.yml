@@ -26,6 +26,8 @@ jobs:
           set -xe
           chmod +x .github/workflows/render-cd.sh
           .github/workflows/render-cd.sh
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
 
       - name: Abstract the repository name from env.
         uses: bhowell2/github-substring-action@v1.0.0
