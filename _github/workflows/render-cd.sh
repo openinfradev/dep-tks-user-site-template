@@ -2,7 +2,7 @@
 DECAPOD_BASE_DIR=decapod-base-yaml
 DECAPOD_BASE_URL=https://github.com/openinfradev/${DECAPOD_BASE_DIR}.git
 TKS_CUSTOM_BASE_DIR=tks-custom-base-yaml
-TKS_CUSTOM_BASE_URL=https://github.com/openinfradev/${TKS_CUSTOM_BASE_DIR}.git
+TKS_CUSTOM_BASE_URL=https://$USER_NAME:$API_TOKEN_GITHUB@github.com/openinfradev/${TKS_CUSTOM_BASE_DIR}.git
 BRANCH="main"
 USERNAME="TKS-BOT"
 
@@ -33,7 +33,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Fetching tks-custom-base with $BRANCH branch/tag........"
-git clone -b $BRANCH $USER_NAME:$API_TOKEN_GITHUB@$TKS_CUSTOM_BASE_URL
+git clone -b $BRANCH $TKS_CUSTOM_BASE_URL
 if [ $? -ne 0 ]; then
   echo "Error while cloning from $TKS_CUSTOM_BASE_URL"
   exit $?
