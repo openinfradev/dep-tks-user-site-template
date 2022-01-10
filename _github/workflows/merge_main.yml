@@ -28,6 +28,7 @@ jobs:
           .github/workflows/render-cd.sh
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+          USERNAME: ${{ github.repository_owner }}
 
       - name: Abstract the repository name from env.
         uses: bhowell2/github-substring-action@v1.0.0
