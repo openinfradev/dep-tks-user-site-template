@@ -4,7 +4,6 @@ DECAPOD_BASE_URL=https://github.com/openinfradev/${DECAPOD_BASE_DIR}.git
 TKS_CUSTOM_BASE_DIR=tks-custom-base-yaml
 TKS_CUSTOM_BASE_URL=https://$USER_NAME:$API_TOKEN_GITHUB@github.com/openinfradev/${TKS_CUSTOM_BASE_DIR}.git
 BRANCH="main"
-USERNAME="TKS-BOT"
 
 rm -rf $DECAPOD_BASE_DIR $TKS_CUSTOM_BASE_DIR
 
