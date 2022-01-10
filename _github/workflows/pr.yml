@@ -26,3 +26,5 @@ jobs:
           set -xe
           chmod +x .github/workflows/render-cd.sh
           .github/workflows/render-cd.sh
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
