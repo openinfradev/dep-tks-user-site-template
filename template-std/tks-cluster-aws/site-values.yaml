@@ -1,0 +1,41 @@
+apiVersion: openinfradev.github.com/v1
+kind: HelmValuesTransformer
+metadata:
+  name: site
+
+global:
+  clusterName: cluster.local
+charts:
+- name: cluster-api-aws
+  override:
+    sshKeyName: tks-seoul
+    cluster.name: $(clusterName)
+    cluster.region: ap-northeast-2
+    cluster.bastion.enabled: false
+    machinePool:
+    - name: taco
+      machineType: t3.2xlarge
+      replicas: 3
+      minSize: 1
+      maxSize: 16
+      rootVolume:
+        size: 200
+        type: gp2
+      labels:
+        taco-lma: enabled
+        servicemesh: enabled
+        taco-ingress-gateway: enabled
+    - name: normal
+      machineType: t3.large
+      replicas: 1
+      minSize: 1
+      maxSize: 16
+      rootVolume:
+        size: 50
+        type: gp2
+- name: kubernetes-addons
+  override:
+    cni.calico.enabled: true
+    csi.aws-ebs.enabled: true
+- name: ingress-nginx
+  override:
