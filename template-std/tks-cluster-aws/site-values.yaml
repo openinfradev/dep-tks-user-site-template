@@ -25,14 +25,18 @@ charts:
         taco-lma: enabled
         servicemesh: enabled
         taco-ingress-gateway: enabled
+    machineDeployment:
     - name: normal
+      numberOfAZ: 3
+      minSizePerAZ: 1
+      maxSizePerAZ: 5
+      selector:
+        matchLabels:
       machineType: t3.large
-      replicas: 1
-      minSize: 1
-      maxSize: 16
       rootVolume:
         size: 50
         type: gp2
+
 - name: kubernetes-addons
   override:
     cni.calico.enabled: true
