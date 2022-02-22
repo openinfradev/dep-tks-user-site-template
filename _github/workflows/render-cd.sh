@@ -97,7 +97,7 @@ do
       exit 1
     fi
 
-    docker run --rm -i --net=host -v $(pwd)/$DECAPOD_BASE_DIR:/decapod-base-yaml -v $(pwd)/$outputdir:/out --name generate ghcr.io/openinfradev/helmrelease2yaml:v1.3.0 -m $hr_file -t -o /out/$site/$app
+    docker run --rm -i --net=host -v $(pwd)/$DECAPOD_BASE_DIR:/decapod-base-yaml -v $(pwd)/$outputdir:/out --name generate sktcloud/helmrelease2yaml:v1.5.0 -m $hr_file -t -o /out/$site/$app
     rm $hr_file
 
   done
