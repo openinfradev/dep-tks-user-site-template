@@ -40,7 +40,9 @@ charts:
 - name: kubernetes-addons
   override:
     cni.calico.enabled: true
-    csi.aws-ebs.enabled: true
+
+- name: aws-ebs-csi-driver
+  override:
 
 - name: ingress-nginx
   override:
