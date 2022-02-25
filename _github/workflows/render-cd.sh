@@ -101,6 +101,14 @@ do
     rm $hr_file
 
   done
+
+  # Post processes for the customized action
+  #   Action1. change the namespace for aws-cluster-resouces from argo to cluster-name
+  echo "almost finished :  change the namespace for aws-cluster-resouces from argo to cluster-name"
+  sudo sed -i "s/namespace: argo/namespace: $i/g" $(pwd)/output/$i/tks-cluster/cluster-api-aws/*
+
+  # End of Post process
+
 done
 
 rm -rf $DECAPOD_BASE_DIR $TKS_CUSTOM_BASE_DIR
