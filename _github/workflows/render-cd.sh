@@ -101,6 +101,27 @@ do
     rm $hr_file
 
   done
+
+  # Post processes for the customized action
+  #   Action1. change the namespace for aws-cluster-resouces from argo to cluster-name
+  echo "almost finished :  change the namespace for aws-cluster-resouces from argo to cluster-name"
+  sudo sed -i "s/ namespace: argo/ namespace: $site/g" $(pwd)/output/$site/tks-cluster-aws/cluster-api-aws/*
+  sudo sed -i "s/ - argo/ - $site/g" $(pwd)/output/$site/tks-cluster-aws/cluster-api-aws/*
+  # It's possible besides of two above but very tricky!!
+  # sudo sed -i "s/ argo$/ $site/g" $(pwd)/output/$site/tks-cluster-aws/cluster-api-aws/*
+  echo "---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $site
+  labels:
+    name: $site
+    # It bring the secret 'dacapod-argocd-config' using kubed
+    decapod-argocd-config: enabled
+" > Namespace_aws_rc.yaml
+  sudo mv Namespace_aws_rc.yaml $(pwd)/output/$site/tks-cluster-aws/cluster-api-aws/
+  # End of Post process
+
 done
 
 rm -rf $DECAPOD_BASE_DIR $TKS_CUSTOM_BASE_DIR
