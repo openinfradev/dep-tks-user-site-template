@@ -4,13 +4,20 @@ metadata:
   name: site
 
 global:
+  # These values are replaced on cluster creation by workflow
   clusterName: cluster.local
+  sshKeyName: CHANGEME
+  clusterRegion: CHANGEME
+  mdNumOfAz: CHANGEME
+  mdMinSizePerAz: CHANGEME
+  mdMaxSizePerAz: CHANGEME
+  mdMachineType: CHANGEME
 charts:
 - name: cluster-api-aws
   override:
-    sshKeyName: tks-seoul
+    sshKeyName: $(sshKeyName)
     cluster.name: $(clusterName)
-    cluster.region: ap-northeast-2
+    cluster.region: $(clusterRegion)
     cluster.bastion.enabled: false
     machinePool:
     - name: taco
@@ -27,12 +34,12 @@ charts:
         taco-ingress-gateway: enabled
     machineDeployment:
     - name: normal
-      numberOfAZ: 3
-      minSizePerAZ: 1
-      maxSizePerAZ: 5
+      numberOfAZ: $(mdNumOfAz)
+      minSizePerAZ: $(mdMinSizePerAz)
+      maxSizePerAZ: $(mdMaxSizePerAz)
       selector:
         matchLabels:
-      machineType: t3.large
+      machineType: $(mdMachineType)
       rootVolume:
         size: 50
         type: gp2
