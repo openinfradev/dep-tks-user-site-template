@@ -51,3 +51,8 @@ charts:
   override:
     discoveryNamespace: $(clusterName)
     discoveryClusterName: $(clusterName)
+
+- name: cluster-autoscaler-rbac
+  override:
+    deployMgmtRbacOnly:
+      targetNamespace: $(clusterName)
